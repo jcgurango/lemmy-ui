@@ -228,14 +228,21 @@ export class Home extends Component<any, HomeState> {
     let mui = UserService.Instance.myUserInfo;
     let auth = req.auth;
 
-    // TODO figure out auth default_listingType, default_sort_type
-    let type_: ListingType = pathSplit[5]
-      ? ListingType[pathSplit[5]]
-      : mui
-      ? Object.values(ListingType)[
-          mui.local_user_view.local_user.default_listing_type
-        ]
-      : ListingType.Local;
+    const getType = async () => {
+      let type_: ListingType = pathSplit[5]
+        ? ListingType[pathSplit[5]]
+        : mui
+        ? Object.values(ListingType)[
+            mui.local_user_view.local_user.default_listing_type
+          ]
+        : ListingType[
+            (await req.client.getSite({})).site_view.local_site
+              .default_post_listing_type
+          ];
+
+      return type_;
+    };
+
     let sort: SortType = pathSplit[7]
       ? SortType[pathSplit[7]]
       : mui
@@ -249,28 +256,33 @@ export class Home extends Component<any, HomeState> {
     let promises: Promise<any>[] = [];
 
     if (dataType == DataType.Post) {
-      let getPostsForm: GetPosts = {
-        type_,
-        page,
-        limit: fetchLimit,
-        sort,
-        saved_only: false,
-        auth,
-      };
-
-      promises.push(req.client.getPosts(getPostsForm));
+      promises.push(
+        getType()
+          .then(type_ => ({
+            type_,
+            page,
+            limit: fetchLimit,
+            sort,
+            saved_only: false,
+            auth,
+          }))
+          .then(getPostsForm => req.client.getPosts(getPostsForm))
+      );
       promises.push(Promise.resolve());
     } else {
-      let getCommentsForm: GetComments = {
-        page,
-        limit: fetchLimit,
-        sort: postToCommentSortType(sort),
-        type_,
-        saved_only: false,
-        auth,
-      };
       promises.push(Promise.resolve());
-      promises.push(req.client.getComments(getCommentsForm));
+      promises.push(
+        getType()
+          .then(type_ => ({
+            page,
+            limit: fetchLimit,
+            sort: postToCommentSortType(sort),
+            type_,
+            saved_only: false,
+            auth,
+          }))
+          .then(getCommentsForm => req.client.getComments(getCommentsForm))
+      );
     }
 
     let trendingCommunitiesForm: ListCommunities = {
