@@ -731,28 +731,23 @@ export class Home extends Component<any, HomeState> {
         nsfwCheck(data.post_view) &&
         !isPostBlocked(data.post_view)
       ) {
-        // If you're on subscribed, only push it if you're subscribed.
         if (this.state.listingType == ListingType.Subscribed) {
           if (
             mui?.follows
               .map(c => c.community.id)
               .includes(data.post_view.community.id)
           ) {
-            this.state.posts.unshift(data.post_view);
             if (showPostNotifs) {
               notifyPost(data.post_view, this.context.router);
             }
           }
         } else if (this.state.listingType == ListingType.Local) {
-          // If you're on the local view, only push it if its local
           if (data.post_view.post.local) {
-            this.state.posts.unshift(data.post_view);
             if (showPostNotifs) {
               notifyPost(data.post_view, this.context.router);
             }
           }
         } else {
-          this.state.posts.unshift(data.post_view);
           if (showPostNotifs) {
             notifyPost(data.post_view, this.context.router);
           }

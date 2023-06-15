@@ -582,7 +582,6 @@ export class Community extends Component<any, State> {
         nsfwCheck(data.post_view) &&
         !isPostBlocked(data.post_view)
       ) {
-        this.state.posts.unshift(data.post_view);
         if (showPostNotifs) {
           notifyPost(data.post_view, this.context.router);
         }
