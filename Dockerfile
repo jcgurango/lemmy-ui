@@ -24,7 +24,7 @@ COPY src src
 COPY .git .git
 
 # Set UI version 
-RUN echo "export const VERSION = '$(git describe --tag)';" > "src/shared/version.ts"
+RUN echo "export const VERSION = '$(git log --format=%H -n 1 | head -c 7)';" > "src/shared/version.ts"
 
 RUN yarn --production --prefer-offline
 RUN NODE_OPTIONS="--max-old-space-size=8192" yarn build:prod
